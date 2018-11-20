@@ -115,6 +115,7 @@ public class DubizzleMobileTest {
                     System.out.println(ele.getText());
                     if(!ele.getText().contains("Dubai Marina")) {
                         bFlag = false;
+                        break;
                     }
                 }
                 /*This for loop is just to print the price associated with each property*/
