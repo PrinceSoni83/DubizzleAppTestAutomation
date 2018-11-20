@@ -1,7 +1,9 @@
 
+
+import io.appium.java_client.MobileElement;
+import io.appium.java_client.android.AndroidDriver;
 import org.openqa.selenium.*;
 import org.openqa.selenium.remote.DesiredCapabilities;
-import org.openqa.selenium.remote.RemoteWebDriver;
 import org.testng.Assert;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
@@ -10,10 +12,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import static org.testng.Assert.assertTrue;
 
 public class DubizzleMobileTest {
-    public static RemoteWebDriver driver;
+    public static AndroidDriver driver;
     @BeforeTest
 
     public void appiumSetup() throws Exception {
@@ -34,9 +35,7 @@ public class DubizzleMobileTest {
 
         /*Instantiate Appium Driver and Launch Dubizzle App*/
         try {
-            // AndroidDriver driver = new AndroidDriver(new URL("http://127.0.0.1:4723/wd/hub"), caps);
-            //AppiumDriver<MobileElement> driver = new AndroidDriver<MobileElement>(new URL("http://127.0.0.1:4723/wd/hub"), caps);
-            driver = new RemoteWebDriver(new URL("http://127.0.0.1:4723/wd/hub"), caps);
+            driver = new AndroidDriver(new URL("http://127.0.0.1:4723/wd/hub"), caps);
             driver.manage().timeouts().implicitlyWait(60, TimeUnit.SECONDS);
             Thread.sleep(5000);
         } catch (MalformedURLException e) {
@@ -105,23 +104,32 @@ public class DubizzleMobileTest {
             driver.manage().timeouts().implicitlyWait(15, TimeUnit.SECONDS);
 
             /*Step 12 - get the list of search elements */
-            /*MobileElement element = (MobileElement) driver.findElement(MobileBy.AndroidUIAutomator(
-                    "new UiScrollable(new UiSelector().resourceId(\"com.dubizzle.horizontal:id/tv_location\")).scrollIntoView("
-                            + "new UiSelector().textContains(\"Dubai Marina\").instance(15))"));*/
-            List<WebElement> elements = driver.findElements(By.id("com.dubizzle.horizontal:id/tv_location"));
-            String textToMatch;
             Boolean bFlag = true;
-            for (WebElement elm : elements) {
-                textToMatch = elm.getAttribute("text");
-                System.out.println(textToMatch);
-                assertTrue(textToMatch.contains("Dubai Marina"));
-                if(!textToMatch.contains("Dubai Marina")) {
-                    bFlag = false;
-                    break;
-                }
+            int counter = 0;
+            while(counter<15){
+                List<MobileElement> elementsAddress = driver.findElements(By.id("com.dubizzle.horizontal:id/tv_location"));
+                List<MobileElement> elementsPrice = driver.findElements(By.id("com.dubizzle.horizontal:id/tv_price"));
 
+                counter += elementsAddress.size();
+                for(MobileElement ele: elementsAddress){
+                    System.out.println(ele.getText());
+                    if(!ele.getText().contains("Dubai Marina")) {
+                        bFlag = false;
+                    }
+                }
+                /*This for loop is just to print the price associated with each property*/
+                for(MobileElement ele: elementsPrice){
+                    System.out.println(ele.getText());
+                }
+                try{
+                    driver.findElementsByAndroidUIAutomator("new UiScrollable(new UiSelector().resourceId(\"com.dubizzle.horizontal:id/recycler\")).scrollForward()");
+
+                }catch(Exception e){
+
+                }
+                Assert.assertTrue(bFlag,"Dubai Marina text not found in first 15 search results");
             }
-            Assert.assertTrue(bFlag, "Text not matched with search results");
+            
         }catch (Exception e) {
             e.printStackTrace();
         }
